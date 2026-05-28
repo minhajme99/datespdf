@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compress PDF - DatesPDF</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="../index.html" class="navbar__logo">
+        <span class="navbar__logo-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="navbar__logo-text">Dates<span class="highlight">PDF</span></span>
+      </a>
+      <nav class="navbar__menu" id="navMenu">
+        <ul class="navbar__links">
+          <li><a href="../index.html" class="navbar__link">All Tools</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="tool-page">
+    <div class="tool-header">
+      <div class="tool-header__icon tool-card__icon--green">
+        <i class="fas fa-compress-arrows-alt"></i>
+      </div>
+      <h1>Compress PDF</h1>
+      <p>Reduce the file size of your PDF documents</p>
+    </div>
+
+    <div class="tool-workspace">
+      <div class="tool-workspace__container">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone__icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <p class="drop-zone__text">Drop a PDF file here</p>
+          <p class="drop-zone__hint">or click to browse</p>
+          <button class="drop-zone__btn"><i class="fas fa-plus"></i> Choose File</button>
+          <input type="file" id="fileInput" accept=".pdf" hidden />
+        </div>
+
+        <div id="fileList" class="file-list"></div>
+
+        <div class="tool-action">
+          <button class="tool-action__btn" id="actionBtn" disabled>
+            <i class="fas fa-compress-arrows-alt"></i> Compress PDF
+          </button>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-bar__track">
+            <div class="progress-bar__fill" id="progressFill"></div>
+          </div>
+          <p class="progress-bar__text" id="progressText">Processing...</p>
+        </div>
+
+        <div class="result-area" id="resultArea">
+          <div class="result-area__icon"><i class="fas fa-check-circle"></i></div>
+          <p class="result-area__text" id="resultText">PDF compressed!</p>
+          <button class="result-area__download" id="downloadBtn">
+            <i class="fas fa-download"></i> Download Compressed PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/pdf-tools.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      PDFTools.init({ accept: ".pdf", multiple: false, maxFiles: 1 });
+
+      document.getElementById("actionBtn").addEventListener("click", async () => {
+        if (!PDFTools.files.length) return;
+
+        try {
+          const originalSize = PDFTools.files[0].size;
+          PDFTools.showProgress(10, "Reading PDF...");
+
+          const { PDFDocument } = PDFLib;
+          const bytes = await PDFTools.readFileAsArrayBuffer(PDFTools.files[0]);
+          const srcPdf = await PDFDocument.load(bytes);
+
+          PDFTools.showProgress(50, "Compressing...");
+
+          const newPdf = await PDFDocument.create();
+          const pages = await newPdf.copyPages(srcPdf, srcPdf.getPageIndices());
+          pages.forEach((page) => newPdf.addPage(page));
+
+          const compressedBytes = await newPdf.save({
+            useObjectStreams: true,
+            addDefaultPage: false,
+          });
+
+          PDFTools.showProgress(90, "Finalizing...");
+          const blob = new Blob([compressedBytes], { type: "application/pdf" });
+          const reduction = ((1 - blob.size / originalSize) * 100).toFixed(1);
+
+          PDFTools.showProgress(100, "Done!");
+          PDFTools.showResult(
+            `Compressed: ${PDFTools.formatSize(originalSize)} → ${PDFTools.formatSize(blob.size)} (${reduction > 0 ? reduction + "% smaller" : "optimized"})`,
+            blob,
+            "compressed.pdf"
+          );
+        } catch (err) {
+          alert("Error compressing PDF: " + err.message);
+          PDFTools.hideProgress();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

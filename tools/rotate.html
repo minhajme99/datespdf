@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rotate PDF - DatesPDF</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="../index.html" class="navbar__logo">
+        <span class="navbar__logo-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="navbar__logo-text">Dates<span class="highlight">PDF</span></span>
+      </a>
+      <nav class="navbar__menu" id="navMenu">
+        <ul class="navbar__links">
+          <li><a href="../index.html" class="navbar__link">All Tools</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="tool-page">
+    <div class="tool-header">
+      <div class="tool-header__icon tool-card__icon--blue">
+        <i class="fas fa-redo"></i>
+      </div>
+      <h1>Rotate PDF</h1>
+      <p>Rotate all pages in your PDF document</p>
+    </div>
+
+    <div class="tool-workspace">
+      <div class="tool-workspace__container">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone__icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <p class="drop-zone__text">Drop a PDF file here</p>
+          <p class="drop-zone__hint">or click to browse</p>
+          <button class="drop-zone__btn"><i class="fas fa-plus"></i> Choose File</button>
+          <input type="file" id="fileInput" accept=".pdf" hidden />
+        </div>
+
+        <div id="fileList" class="file-list"></div>
+
+        <div class="tool-options" id="rotateOptions" style="display:none">
+          <h3>Rotation</h3>
+          <div class="tool-options__group">
+            <label class="tool-options__label">Rotate by</label>
+            <select class="tool-options__select" id="rotationAngle">
+              <option value="90">90° Clockwise</option>
+              <option value="180">180°</option>
+              <option value="270">90° Counter-clockwise</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tool-action">
+          <button class="tool-action__btn" id="actionBtn" disabled>
+            <i class="fas fa-redo"></i> Rotate PDF
+          </button>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-bar__track">
+            <div class="progress-bar__fill" id="progressFill"></div>
+          </div>
+          <p class="progress-bar__text" id="progressText">Processing...</p>
+        </div>
+
+        <div class="result-area" id="resultArea">
+          <div class="result-area__icon"><i class="fas fa-check-circle"></i></div>
+          <p class="result-area__text" id="resultText">PDF rotated!</p>
+          <button class="result-area__download" id="downloadBtn">
+            <i class="fas fa-download"></i> Download Rotated PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/pdf-tools.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      PDFTools.init({ accept: ".pdf", multiple: false, maxFiles: 1 });
+
+      const origAdd = PDFTools.addFiles.bind(PDFTools);
+      PDFTools.addFiles = function (fl) {
+        this.files = [];
+        origAdd(fl);
+        document.getElementById("rotateOptions").style.display = this.files.length ? "block" : "none";
+      };
+
+      document.getElementById("actionBtn").addEventListener("click", async () => {
+        if (!PDFTools.files.length) return;
+
+        try {
+          PDFTools.showProgress(20, "Reading PDF...");
+          const { PDFDocument, degrees } = PDFLib;
+          const bytes = await PDFTools.readFileAsArrayBuffer(PDFTools.files[0]);
+          const pdf = await PDFDocument.load(bytes);
+          const angle = parseInt(document.getElementById("rotationAngle").value);
+
+          PDFTools.showProgress(50, "Rotating pages...");
+          const pages = pdf.getPages();
+          pages.forEach((page) => page.setRotation(degrees(page.getRotation().angle + angle)));
+
+          PDFTools.showProgress(80, "Saving...");
+          const rotatedBytes = await pdf.save();
+          const blob = new Blob([rotatedBytes], { type: "application/pdf" });
+
+          PDFTools.showProgress(100, "Done!");
+          PDFTools.showResult(
+            `Rotated ${pages.length} page(s) by ${angle}°`,
+            blob,
+            "rotated.pdf"
+          );
+        } catch (err) {
+          alert("Error rotating PDF: " + err.message);
+          PDFTools.hideProgress();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

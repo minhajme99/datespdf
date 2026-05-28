@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Merge PDF - DatesPDF</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="../index.html" class="navbar__logo">
+        <span class="navbar__logo-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="navbar__logo-text">Dates<span class="highlight">PDF</span></span>
+      </a>
+      <nav class="navbar__menu" id="navMenu">
+        <ul class="navbar__links">
+          <li><a href="../index.html" class="navbar__link">All Tools</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="tool-page">
+    <div class="tool-header">
+      <div class="tool-header__icon tool-card__icon--red">
+        <i class="fas fa-layer-group"></i>
+      </div>
+      <h1>Merge PDF</h1>
+      <p>Combine multiple PDF files into a single document</p>
+    </div>
+
+    <div class="tool-workspace">
+      <div class="tool-workspace__container">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone__icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <p class="drop-zone__text">Drop PDF files here</p>
+          <p class="drop-zone__hint">or click to browse your files</p>
+          <button class="drop-zone__btn"><i class="fas fa-plus"></i> Choose Files</button>
+          <input type="file" id="fileInput" accept=".pdf" multiple hidden />
+        </div>
+
+        <div id="fileList" class="file-list"></div>
+
+        <div class="tool-action">
+          <button class="tool-action__btn" id="actionBtn" disabled>
+            <i class="fas fa-layer-group"></i> Merge PDFs
+          </button>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-bar__track">
+            <div class="progress-bar__fill" id="progressFill"></div>
+          </div>
+          <p class="progress-bar__text" id="progressText">Processing...</p>
+        </div>
+
+        <div class="result-area" id="resultArea">
+          <div class="result-area__icon"><i class="fas fa-check-circle"></i></div>
+          <p class="result-area__text" id="resultText">PDFs merged successfully!</p>
+          <button class="result-area__download" id="downloadBtn">
+            <i class="fas fa-download"></i> Download Merged PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/pdf-tools.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      PDFTools.init({ accept: ".pdf", multiple: true });
+
+      document.getElementById("actionBtn").addEventListener("click", async () => {
+        if (PDFTools.files.length < 2) {
+          alert("Please add at least 2 PDF files to merge.");
+          return;
+        }
+
+        try {
+          PDFTools.showProgress(10, "Starting merge...");
+          const { PDFDocument } = PDFLib;
+          const mergedPdf = await PDFDocument.create();
+
+          for (let i = 0; i < PDFTools.files.length; i++) {
+            const progress = 10 + (80 * i) / PDFTools.files.length;
+            PDFTools.showProgress(progress, `Processing file ${i + 1} of ${PDFTools.files.length}...`);
+
+            const bytes = await PDFTools.readFileAsArrayBuffer(PDFTools.files[i]);
+            const pdf = await PDFDocument.load(bytes);
+            const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+            pages.forEach((page) => mergedPdf.addPage(page));
+          }
+
+          PDFTools.showProgress(95, "Generating merged PDF...");
+          const mergedBytes = await mergedPdf.save();
+          const blob = new Blob([mergedBytes], { type: "application/pdf" });
+
+          PDFTools.showProgress(100, "Done!");
+          PDFTools.showResult(
+            `Successfully merged ${PDFTools.files.length} files (${PDFTools.formatSize(blob.size)})`,
+            blob,
+            "merged.pdf"
+          );
+        } catch (err) {
+          alert("Error merging PDFs: " + err.message);
+          PDFTools.hideProgress();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Images to PDF - DatesPDF</title>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="../index.html" class="navbar__logo">
+        <span class="navbar__logo-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="navbar__logo-text">Dates<span class="highlight">PDF</span></span>
+      </a>
+      <nav class="navbar__menu" id="navMenu">
+        <ul class="navbar__links">
+          <li><a href="../index.html" class="navbar__link">All Tools</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div class="tool-page">
+    <div class="tool-header">
+      <div class="tool-header__icon tool-card__icon--orange">
+        <i class="fas fa-images"></i>
+      </div>
+      <h1>Images to PDF</h1>
+      <p>Create a PDF from JPG, PNG, and other images</p>
+    </div>
+
+    <div class="tool-workspace">
+      <div class="tool-workspace__container">
+        <div class="drop-zone" id="dropZone">
+          <div class="drop-zone__icon"><i class="fas fa-cloud-upload-alt"></i></div>
+          <p class="drop-zone__text">Drop image files here</p>
+          <p class="drop-zone__hint">Supports JPG, PNG</p>
+          <button class="drop-zone__btn"><i class="fas fa-plus"></i> Choose Images</button>
+          <input type="file" id="fileInput" accept="image/jpeg,image/png" multiple hidden />
+        </div>
+
+        <div id="fileList" class="file-list"></div>
+
+        <div class="tool-action">
+          <button class="tool-action__btn" id="actionBtn" disabled>
+            <i class="fas fa-file-pdf"></i> Create PDF
+          </button>
+        </div>
+
+        <div class="progress-bar" id="progressBar">
+          <div class="progress-bar__track">
+            <div class="progress-bar__fill" id="progressFill"></div>
+          </div>
+          <p class="progress-bar__text" id="progressText">Processing...</p>
+        </div>
+
+        <div class="result-area" id="resultArea">
+          <div class="result-area__icon"><i class="fas fa-check-circle"></i></div>
+          <p class="result-area__text" id="resultText">PDF created!</p>
+          <button class="result-area__download" id="downloadBtn">
+            <i class="fas fa-download"></i> Download PDF
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/main.js"></script>
+  <script src="../js/pdf-tools.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      PDFTools.init({ accept: "image/jpeg,image/png", multiple: true });
+
+      document.getElementById("actionBtn").addEventListener("click", async () => {
+        if (!PDFTools.files.length) return;
+
+        try {
+          PDFTools.showProgress(10, "Creating PDF...");
+          const { PDFDocument } = PDFLib;
+          const pdf = await PDFDocument.create();
+
+          for (let i = 0; i < PDFTools.files.length; i++) {
+            const progress = 10 + (80 * i) / PDFTools.files.length;
+            PDFTools.showProgress(progress, `Adding image ${i + 1} of ${PDFTools.files.length}...`);
+
+            const bytes = await PDFTools.readFileAsArrayBuffer(PDFTools.files[i]);
+            const type = PDFTools.files[i].type;
+            let img;
+
+            if (type === "image/png") {
+              img = await pdf.embedPng(bytes);
+            } else {
+              img = await pdf.embedJpg(bytes);
+            }
+
+            const page = pdf.addPage([img.width, img.height]);
+            page.drawImage(img, { x: 0, y: 0, width: img.width, height: img.height });
+          }
+
+          PDFTools.showProgress(95, "Generating PDF...");
+          const pdfBytes = await pdf.save();
+          const blob = new Blob([pdfBytes], { type: "application/pdf" });
+
+          PDFTools.showProgress(100, "Done!");
+          PDFTools.showResult(
+            `Created PDF with ${PDFTools.files.length} page(s) (${PDFTools.formatSize(blob.size)})`,
+            blob,
+            "images.pdf"
+          );
+        } catch (err) {
+          alert("Error creating PDF: " + err.message);
+          PDFTools.hideProgress();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
