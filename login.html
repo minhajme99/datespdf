@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Log In - DatesPDF</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="index.html" class="navbar__logo">
+        <span class="navbar__logo-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="navbar__logo-text">Dates<span class="highlight">PDF</span></span>
+      </a>
+      <div id="authNav"></div>
+    </div>
+  </header>
+
+  <div class="auth-page">
+    <div class="auth-card">
+      <div class="auth-card__header">
+        <div class="auth-card__icon">
+          <i class="fas fa-sign-in-alt"></i>
+        </div>
+        <h1>Welcome Back</h1>
+        <p>Log in to access all PDF tools</p>
+      </div>
+
+      <form class="auth-form" id="loginForm">
+        <div class="auth-form__group">
+          <label class="auth-form__label">Email</label>
+          <div class="auth-form__input-wrap">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="loginEmail" placeholder="Enter your email" required />
+          </div>
+        </div>
+
+        <div class="auth-form__group">
+          <label class="auth-form__label">Password</label>
+          <div class="auth-form__input-wrap">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="loginPassword" placeholder="Enter your password" required />
+          </div>
+        </div>
+
+        <div class="auth-form__error" id="loginError"></div>
+
+        <button type="submit" class="auth-form__submit">
+          <i class="fas fa-sign-in-alt"></i> Log In
+        </button>
+      </form>
+
+      <div class="auth-card__footer">
+        <p>Don't have an account? <a href="signup.html">Sign Up</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (Auth.isLoggedIn()) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      Auth.updateNavbar();
+
+      document.getElementById("loginForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const email = document.getElementById("loginEmail").value;
+        const password = document.getElementById("loginPassword").value;
+        const errorEl = document.getElementById("loginError");
+
+        const result = Auth.login(email, password);
+        if (result.success) {
+          window.location.href = Auth.getRedirectUrl();
+        } else {
+          errorEl.textContent = result.message;
+          errorEl.style.display = "block";
+        }
+      });
+    });
+  </script>
+</body>
+</html>

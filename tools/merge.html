@@ -21,6 +21,7 @@
           <li><a href="../index.html" class="navbar__link">All Tools</a></li>
         </ul>
       </nav>
+      <div id="authNav"></div>
     </div>
   </header>
 
@@ -111,6 +112,13 @@
           PDFTools.hideProgress();
         }
       });
+    });
+  </script>
+  <script src="../js/auth.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      Auth.updateNavbar();
+      if (!Auth.requireAuth("../login.html")) return;
     });
   </script>
 </body>

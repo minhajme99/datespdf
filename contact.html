@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Us - DatesPDF</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="navbar__container">
+      <a href="index.html" class="navbar__logo">
+        <span class="navbar__logo-icon"><i class="fas fa-file-pdf"></i></span>
+        <span class="navbar__logo-text">Dates<span class="highlight">PDF</span></span>
+      </a>
+      <nav class="navbar__menu" id="navMenu">
+        <ul class="navbar__links">
+          <li><a href="index.html" class="navbar__link">All Tools</a></li>
+          <li><a href="contact.html" class="navbar__link active">Contact</a></li>
+        </ul>
+      </nav>
+      <div id="authNav"></div>
+      <button class="navbar__toggle" id="navToggle" aria-label="Toggle navigation">
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+        <span class="navbar__toggle-bar"></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="tool-page">
+    <div class="tool-header">
+      <div class="tool-header__icon tool-card__icon--blue">
+        <i class="fas fa-envelope"></i>
+      </div>
+      <h1>Contact Us</h1>
+      <p>Have questions or feedback? We'd love to hear from you</p>
+    </div>
+
+    <div class="tool-workspace">
+      <div class="tool-workspace__container">
+        <div class="contact-page">
+          <div class="contact-page__info">
+            <div class="contact-page__info-card">
+              <div class="contact-page__info-icon">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <h3>Email</h3>
+              <p>support@datespdf.com</p>
+            </div>
+            <div class="contact-page__info-card">
+              <div class="contact-page__info-icon">
+                <i class="fas fa-phone"></i>
+              </div>
+              <h3>Phone</h3>
+              <p>+880 1234 567890</p>
+            </div>
+            <div class="contact-page__info-card">
+              <div class="contact-page__info-icon">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <h3>Address</h3>
+              <p>Dhaka, Bangladesh</p>
+            </div>
+          </div>
+
+          <form class="contact-page__form" id="contactForm">
+            <h2>Send us a Message</h2>
+            <div class="contact-page__form-row">
+              <div class="contact-page__form-group">
+                <label>Full Name</label>
+                <input type="text" placeholder="Your name" required />
+              </div>
+              <div class="contact-page__form-group">
+                <label>Email</label>
+                <input type="email" placeholder="Your email" required />
+              </div>
+            </div>
+            <div class="contact-page__form-group">
+              <label>Subject</label>
+              <input type="text" placeholder="What is this about?" required />
+            </div>
+            <div class="contact-page__form-group">
+              <label>Message</label>
+              <textarea rows="6" placeholder="Write your message here..." required></textarea>
+            </div>
+            <button type="submit" class="contact-page__submit">
+              <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+            <div class="contact-page__success" id="contactSuccess">
+              <i class="fas fa-check-circle"></i>
+              <p>Your message has been sent successfully! We'll get back to you soon.</p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      Auth.updateNavbar();
+
+      document.getElementById("contactForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector("button[type='submit']");
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+
+        setTimeout(() => {
+          btn.style.display = "none";
+          document.getElementById("contactSuccess").style.display = "flex";
+          e.target.querySelectorAll("input, textarea").forEach((el) => {
+            el.disabled = true;
+          });
+
+          setTimeout(() => {
+            btn.style.display = "";
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Message';
+            document.getElementById("contactSuccess").style.display = "none";
+            e.target.reset();
+            e.target.querySelectorAll("input, textarea").forEach((el) => {
+              el.disabled = false;
+            });
+          }, 4000);
+        }, 1500);
+      });
+    });
+  </script>
+</body>
+</html>

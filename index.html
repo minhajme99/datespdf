@@ -24,8 +24,10 @@
           <li><a href="#convert" class="navbar__link">Convert</a></li>
           <li><a href="#organize" class="navbar__link">Organize</a></li>
           <li><a href="#security" class="navbar__link">Security</a></li>
+          <li><a href="contact.html" class="navbar__link">Contact</a></li>
         </ul>
       </nav>
+      <div id="authNav"></div>
       <button class="navbar__toggle" id="navToggle" aria-label="Toggle navigation">
         <span class="navbar__toggle-bar"></span>
         <span class="navbar__toggle-bar"></span>
@@ -324,6 +326,29 @@
     </div>
   </footer>
 
+  <!-- Auth Gate Overlay -->
+  <div class="auth-gate" id="authGate" style="display:none">
+    <div class="auth-gate__card">
+      <div class="auth-gate__icon"><i class="fas fa-lock"></i></div>
+      <h2>Login Required</h2>
+      <p>Please log in or create a free account to access all PDF tools.</p>
+      <div class="auth-gate__buttons">
+        <a href="login.html" class="auth-gate__btn auth-gate__btn--primary">Log In</a>
+        <a href="signup.html" class="auth-gate__btn auth-gate__btn--outline">Sign Up</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      Auth.updateNavbar();
+      if (!Auth.isLoggedIn()) {
+        document.getElementById("authGate").style.display = "flex";
+        document.body.style.overflow = "hidden";
+      }
+    });
+  </script>
 </body>
 </html>
