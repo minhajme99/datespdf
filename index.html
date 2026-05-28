@@ -326,27 +326,20 @@
     </div>
   </footer>
 
-  <!-- Auth Gate Overlay -->
-  <div class="auth-gate" id="authGate" style="display:none">
-    <div class="auth-gate__card">
-      <div class="auth-gate__icon"><i class="fas fa-lock"></i></div>
-      <h2>Login Required</h2>
-      <p>Please log in or create a free account to access all PDF tools.</p>
-      <div class="auth-gate__buttons">
-        <a href="login.html" class="auth-gate__btn auth-gate__btn--primary">Log In</a>
-        <a href="signup.html" class="auth-gate__btn auth-gate__btn--outline">Sign Up</a>
-      </div>
-    </div>
-  </div>
-
   <script src="js/auth.js"></script>
   <script src="js/main.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       Auth.updateNavbar();
+      // Intercept tool links — require login to access tools
       if (!Auth.isLoggedIn()) {
-        document.getElementById("authGate").style.display = "flex";
-        document.body.style.overflow = "hidden";
+        document.querySelectorAll('a[href^="tools/"]').forEach((link) => {
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+            sessionStorage.setItem("datespdf_redirect", link.getAttribute("href"));
+            window.location.href = "login.html";
+          });
+        });
       }
     });
   </script>
